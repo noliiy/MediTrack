@@ -7,102 +7,90 @@ struct AddMedicationView: View {
     @State private var name = ""
     @State private var dosage = ""
     @State private var intakeCondition: IntakeCondition = .afterMeal
-    @State private var frequency = 1
-    @State private var notes = ""
-    @State private var selectedTimes: [MedicationTime] = []
-    @State private var showingTimePicker = false
     @State private var selectedHour = 9
     @State private var selectedMinute = 0
     
-    private let intakeConditions: [IntakeCondition] = [
-        .beforeMeal, .afterMeal, .withMeal, .noMatter
-    ]
-    
     var body: some View {
         NavigationView {
-            Form {
-                Section(header: Text("İlaç Bilgileri")) {
-                    TextField("İlaç Adı", text: $name)
-                    TextField("Doz (örn: 100mg)", text: $dosage)
-                }
+            VStack(spacing: 24) {
+                // İlaç Adı
+                TextField("İlaç Adı", text: $name)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
                 
-                Section(header: Text("Alım Koşulları")) {
-                    Picker("Alım Durumu", selection: $intakeCondition) {
-                        ForEach(intakeConditions, id: \.id) { condition in
+                // Doz
+                TextField("Doz (örn: 100mg)", text: $dosage)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+                
+                // Alım Koşulu
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Alım Koşulu")
+                        .font(.subheadline)
+                        .foregroundColor(.theme.secondaryText)
+                    
+                    Picker("Alım Koşulu", selection: $intakeCondition) {
+                        ForEach([IntakeCondition.beforeMeal,
+                                IntakeCondition.afterMeal,
+                                IntakeCondition.withMeal,
+                                IntakeCondition.noMatter]) { condition in
                             Text(condition.rawValue).tag(condition)
                         }
                     }
+                    .pickerStyle(SegmentedPickerStyle())
                 }
+                .padding(.horizontal)
                 
-                Section(header: Text("Zamanlama")) {
-                    Stepper("Günlük Alım Sayısı: \(frequency)", value: $frequency, in: 1...10)
+                // Zaman Seçimi
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Alım Zamanı")
+                        .font(.subheadline)
+                        .foregroundColor(.theme.secondaryText)
                     
-                    ForEach(selectedTimes) { time in
-                        HStack {
-                            Text("\(time.hour):\(String(format: "%02d", time.minute))")
-                            Spacer()
-                            Button(action: {
-                                selectedTimes.removeAll(where: { $0.id == time.id })
-                            }) {
-                                Image(systemName: "trash")
-                                    .foregroundColor(.red)
+                    HStack {
+                        Picker("Saat", selection: $selectedHour) {
+                            ForEach(0..<24) { hour in
+                                Text("\(hour)").tag(hour)
                             }
                         }
-                    }
-                    
-                    Button("Zaman Ekle") {
-                        showingTimePicker = true
+                        .pickerStyle(WheelPickerStyle())
+                        .frame(width: 100)
+                        
+                        Text(":")
+                            .font(.title2)
+                        
+                        Picker("Dakika", selection: $selectedMinute) {
+                            ForEach(0..<60) { minute in
+                                Text(String(format: "%02d", minute)).tag(minute)
+                            }
+                        }
+                        .pickerStyle(WheelPickerStyle())
+                        .frame(width: 100)
                     }
                 }
+                .padding(.horizontal)
                 
-                Section(header: Text("Notlar")) {
-                    TextEditor(text: $notes)
-                        .frame(height: 100)
-                }
+                Spacer()
             }
+            .padding(.top, 20)
             .navigationTitle("Yeni İlaç Ekle")
             .navigationBarItems(
                 leading: Button("İptal") { dismiss() },
                 trailing: Button("Kaydet") { saveMedication() }
-                    .disabled(name.isEmpty || dosage.isEmpty || selectedTimes.isEmpty)
+                    .disabled(name.isEmpty || dosage.isEmpty)
             )
-            .sheet(isPresented: $showingTimePicker) {
-                NavigationView {
-                    Form {
-                        Section {
-                            Picker("Saat", selection: $selectedHour) {
-                                ForEach(0..<24) { hour in
-                                    Text("\(hour)").tag(hour)
-                                }
-                            }
-                            Picker("Dakika", selection: $selectedMinute) {
-                                ForEach(0..<60) { minute in
-                                    Text(String(format: "%02d", minute)).tag(minute)
-                                }
-                            }
-                        }
-                    }
-                    .navigationTitle("Zaman Seç")
-                    .navigationBarItems(
-                        trailing: Button("Ekle") {
-                            let newTime = MedicationTime(hour: selectedHour, minute: selectedMinute)
-                            selectedTimes.append(newTime)
-                            showingTimePicker = false
-                        }
-                    )
-                }
-            }
         }
     }
     
     private func saveMedication() {
+        let medicationTime = MedicationTime(hour: selectedHour, minute: selectedMinute)
+        
         let newMedication = Medication(
             name: name,
             dosage: dosage,
             intakeCondition: intakeCondition,
-            frequency: frequency,
-            times: selectedTimes,
-            notes: notes.isEmpty ? nil : notes
+            frequency: 1,
+            times: [medicationTime]
         )
         
         viewModel.addMedication(newMedication)

@@ -5,28 +5,9 @@ extension Color {
 }
 
 struct ColorTheme {
-    let primary = Color("PrimaryBlue")
-    let secondary = Color("SecondaryBlue")
-    let accent = Color("AccentColor")
-    let background = Color("Background")
-    let cardBackground = Color("CardBackground")
-    let text = Color("TextColor")
-    let secondaryText = Color("SecondaryText")
-    
-    // Gradients
-    var primaryGradient: LinearGradient {
-        LinearGradient(
-            colors: [primary.opacity(0.8), primary],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-    }
-    
-    var cardGradient: LinearGradient {
-        LinearGradient(
-            colors: [cardBackground, cardBackground.opacity(0.8)],
-            startPoint: .top,
-            endPoint: .bottom
-        )
-    }
+    let mainBlue = Color(red: 0.4, green: 0.6, blue: 1.0) // Açık mavi
+    let background = Color.white
+    let text = Color.black
+    let secondaryText = Color.gray
+    let cardBackground = Color(white: 0.97) // Çok açık gri
 } 

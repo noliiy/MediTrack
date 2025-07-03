@@ -4,39 +4,33 @@ struct HomeView: View {
     @StateObject private var viewModel = MedicationViewModel()
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.theme.background
-                    .ignoresSafeArea()
-                
-                VStack {
-                    // Günlük İlerleme Kartı
-                    ProgressCard(progress: viewModel.getDailyProgress())
-                        .padding(.horizontal)
-                        .padding(.top, 20)
-                    
-                    Spacer()
-                    
-                    // İlaç Durumu
-                    if let condition = viewModel.todaysMedications.first?.intakeCondition {
-                        MedicationStatusView(condition: condition)
-                            .padding(.bottom, 100)
-                    }
-                    
-                    // Alt Menü
-                    BottomMenuView()
-                }
+        VStack {
+            // Günlük İlerleme Kartı
+            ProgressCard(progress: viewModel.getDailyProgress())
+                .padding(.horizontal)
+                .padding(.top, 20)
+            
+            Spacer()
+            
+            // İlaç Durumu
+            if let condition = viewModel.todaysMedications.first?.intakeCondition {
+                MedicationStatusView(condition: condition)
+                    .padding(.bottom, 100)
             }
-            .navigationBarItems(
-                trailing: Button(action: {
-                    viewModel.showingAddMedication = true
-                }) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.theme.mainBlue)
-                }
-            )
+            
+            // Alt Menü
+            BottomMenuView()
         }
+        .background(Color.theme.background.ignoresSafeArea())
+        .navigationBarItems(
+            trailing: Button(action: {
+                viewModel.showingAddMedication = true
+            }) {
+                Image(systemName: "plus.circle.fill")
+                    .font(.title2)
+                    .foregroundColor(.theme.primary)
+            }
+        )
         .sheet(isPresented: $viewModel.showingAddMedication) {
             AddMedicationView(viewModel: viewModel)
         }
@@ -75,7 +69,7 @@ struct ProgressCard: View {
             .padding(40)
         }
         .padding()
-        .background(Color.theme.mainBlue)
+        .background(Color.theme.primary)
         .cornerRadius(20)
         .onAppear {
             withAnimation(.easeInOut(duration: 1)) {
@@ -92,11 +86,11 @@ struct MedicationStatusView: View {
         VStack(spacing: 8) {
             Image(systemName: "clock")
                 .font(.system(size: 24))
-                .foregroundColor(.theme.mainBlue)
+                .foregroundColor(.theme.primary)
             
             Text(condition.rawValue)
                 .font(.system(size: 16))
-                .foregroundColor(.theme.mainBlue)
+                .foregroundColor(.theme.primary)
                 .multilineTextAlignment(.center)
         }
         .padding()
@@ -114,7 +108,7 @@ struct BottomMenuView: View {
                 Text("Ana Sayfa")
                     .font(.caption)
             }
-            .foregroundColor(.theme.mainBlue)
+            .foregroundColor(.theme.primary)
             
             VStack(spacing: 8) {
                 Image(systemName: "checkmark.circle.fill")
@@ -122,7 +116,7 @@ struct BottomMenuView: View {
                 Text("Tamamlandı")
                     .font(.caption)
             }
-            .foregroundColor(.theme.mainBlue)
+            .foregroundColor(.theme.primary)
         }
         .padding(.vertical)
         .background(Color.theme.background)

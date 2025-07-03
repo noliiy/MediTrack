@@ -12,6 +12,7 @@ struct AddMedicationView: View {
     @State private var notes = ""
     @State private var showAlert = false
     @State private var isLoading = false
+    @State private var isSaved = false
     
     var body: some View {
         NavigationView {
@@ -29,6 +30,7 @@ struct AddMedicationView: View {
                             
                             TextField("Örn: Aspirin", text: $name)
                                 .textFieldStyle(CustomTextFieldStyle())
+                                .submitLabel(.next)
                         }
                         
                         // Doz
@@ -39,6 +41,7 @@ struct AddMedicationView: View {
                             
                             TextField("Örn: 100mg", text: $dosage)
                                 .textFieldStyle(CustomTextFieldStyle())
+                                .submitLabel(.done)
                         }
                         
                         // Alım Koşulu
@@ -108,10 +111,11 @@ struct AddMedicationView: View {
                         }
                         
                         Spacer()
+                            .frame(height: 32)
                         
                         // Kaydet Butonu
                         Button(action: {
-                            withAnimation {
+                            if !isLoading && !isSaved {
                                 saveMedication()
                             }
                         }) {
@@ -120,9 +124,14 @@ struct AddMedicationView: View {
                                     ProgressView()
                                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                         .padding(.trailing, 8)
+                                } else if isSaved {
+                                    Image(systemName: "checkmark")
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                        .padding(.trailing, 8)
                                 }
                                 
-                                Text("Kaydet")
+                                Text(isSaved ? "Kaydedildi" : "Kaydet")
                                     .font(.headline)
                                     .foregroundColor(.white)
                             }
@@ -130,11 +139,10 @@ struct AddMedicationView: View {
                             .padding(.vertical, 16)
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(name.isEmpty || dosage.isEmpty ? Color.theme.primary.opacity(0.5) : Color.theme.primary)
+                                    .fill(buttonBackgroundColor)
                             )
                         }
-                        .disabled(name.isEmpty || dosage.isEmpty || isLoading)
-                        .padding(.top, 16)
+                        .disabled(name.isEmpty || dosage.isEmpty || isLoading || isSaved)
                     }
                     .padding(24)
                 }
@@ -149,18 +157,28 @@ struct AddMedicationView: View {
                     .foregroundColor(.theme.secondary)
                 }
             }
-            .alert("İlaç Kaydedildi", isPresented: $showAlert) {
-                Button("Tamam", role: .cancel) {
-                    dismiss()
+            .onChange(of: isSaved) { newValue in
+                if newValue {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                        dismiss()
+                    }
                 }
-            } message: {
-                Text("\(name) başarıyla kaydedildi.")
             }
         }
     }
     
+    private var buttonBackgroundColor: Color {
+        if isSaved {
+            return Color.theme.success
+        } else if name.isEmpty || dosage.isEmpty {
+            return Color.theme.primary.opacity(0.5)
+        } else {
+            return Color.theme.primary
+        }
+    }
+    
     private func saveMedication() {
-        guard !name.isEmpty && !dosage.isEmpty else { return }
+        guard !name.isEmpty && !dosage.isEmpty && !isLoading && !isSaved else { return }
         
         isLoading = true
         
@@ -180,7 +198,9 @@ struct AddMedicationView: View {
         // Kullanıcı geri bildirimi
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             isLoading = false
-            showAlert = true
+            withAnimation {
+                isSaved = true
+            }
         }
     }
 }

@@ -1,37 +1,14 @@
 import Foundation
 
-enum IntakeCondition: String, Codable, Identifiable {
-    case beforeMeal = "Aç Karnına"
-    case afterMeal = "Tok Karnına"
-    case withMeal = "Yemek İle Birlikte"
-    case noMatter = "Farketmez"
-    
-    var id: String { rawValue }
-}
-
-struct MedicationTime: Codable, Identifiable {
-    let id: UUID
-    let hour: Int
-    let minute: Int
-    var date: Date {
-        Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: Date()) ?? Date()
-    }
-    
-    init(id: UUID = UUID(), hour: Int, minute: Int) {
-        self.id = id
-        self.hour = hour
-        self.minute = minute
-    }
-}
-
+// MARK: - Models
 struct Medication: Identifiable, Codable {
     let id: UUID
     let name: String
     let dosage: String
     let intakeCondition: IntakeCondition
-    let frequency: Int // Times per day
-    let times: [MedicationTime] // Specific times to take the medication
-    var takenDoses: [Date] // Dates when medication was taken
+    let frequency: Int
+    let times: [MedicationTime]
+    var takenDoses: [Date]
     let notes: String?
     let startDate: Date
     let endDate: Date?
@@ -59,7 +36,35 @@ struct Medication: Identifiable, Codable {
         self.startDate = startDate
         self.endDate = endDate
     }
+}
+
+struct MedicationTime: Codable, Identifiable {
+    let id: UUID
+    let hour: Int
+    let minute: Int
     
+    init(id: UUID = UUID(), hour: Int, minute: Int) {
+        self.id = id
+        self.hour = hour
+        self.minute = minute
+    }
+    
+    var date: Date {
+        Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: Date()) ?? Date()
+    }
+}
+
+enum IntakeCondition: String, Codable, Identifiable {
+    case beforeMeal = "Aç Karnına"
+    case afterMeal = "Tok Karnına"
+    case withMeal = "Yemek İle Birlikte"
+    case noMatter = "Farketmez"
+    
+    var id: String { rawValue }
+}
+
+// MARK: - Domain Logic
+extension Medication {
     var adherenceRate: Double {
         guard !times.isEmpty else { return 0.0 }
         let totalExpectedDoses = frequency * Calendar.current.numberOfDaysBetween(startDate, and: Date())

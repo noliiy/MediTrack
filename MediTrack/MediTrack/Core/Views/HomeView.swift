@@ -13,7 +13,7 @@ struct HomeView: View {
             Spacer()
             
             // İlaç Durumu
-            if let condition = viewModel.todaysMedications.first?.intakeCondition {
+            if let condition = viewModel.state.todaysMedications.first?.intakeCondition {
                 MedicationStatusView(condition: condition)
                     .padding(.bottom, 100)
             }
@@ -24,14 +24,21 @@ struct HomeView: View {
         .background(Color.theme.background.ignoresSafeArea())
         .navigationBarItems(
             trailing: Button(action: {
-                viewModel.showingAddMedication = true
+                viewModel.dispatch(.showAddMedication)
             }) {
                 Image(systemName: "plus.circle.fill")
                     .font(.title2)
                     .foregroundColor(.theme.primary)
             }
         )
-        .sheet(isPresented: $viewModel.showingAddMedication) {
+        .sheet(isPresented: .init(
+            get: { viewModel.state.showingAddMedication },
+            set: { isPresented in
+                if !isPresented {
+                    viewModel.dispatch(.hideAddMedication)
+                }
+            }
+        )) {
             AddMedicationView(viewModel: viewModel)
         }
     }

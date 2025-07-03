@@ -75,9 +75,14 @@ struct AddMedicationView: View {
             .padding(.top, 20)
             .navigationTitle("Yeni İlaç Ekle")
             .navigationBarItems(
-                leading: Button("İptal") { dismiss() },
-                trailing: Button("Kaydet") { saveMedication() }
-                    .disabled(name.isEmpty || dosage.isEmpty)
+                leading: Button("İptal") {
+                    viewModel.dispatch(.hideAddMedication)
+                    dismiss()
+                },
+                trailing: Button("Kaydet") {
+                    saveMedication()
+                }
+                .disabled(name.isEmpty || dosage.isEmpty)
             )
         }
     }
@@ -93,7 +98,7 @@ struct AddMedicationView: View {
             times: [medicationTime]
         )
         
-        viewModel.addMedication(newMedication)
+        viewModel.dispatch(.addMedication(newMedication))
         dismiss()
     }
 }

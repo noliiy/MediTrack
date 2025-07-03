@@ -1,10 +1,12 @@
 import Foundation
 
-enum IntakeCondition: String, Codable {
+enum IntakeCondition: String, Codable, Identifiable {
     case beforeMeal = "Aç Karnına"
     case afterMeal = "Tok Karnına"
     case withMeal = "Yemek İle Birlikte"
     case noMatter = "Farketmez"
+    
+    var id: String { rawValue }
 }
 
 struct MedicationTime: Codable, Identifiable {

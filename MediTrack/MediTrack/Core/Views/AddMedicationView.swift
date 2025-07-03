@@ -14,6 +14,10 @@ struct AddMedicationView: View {
     @State private var selectedHour = 9
     @State private var selectedMinute = 0
     
+    private let intakeConditions: [IntakeCondition] = [
+        .beforeMeal, .afterMeal, .withMeal, .noMatter
+    ]
+    
     var body: some View {
         NavigationView {
             Form {
@@ -24,10 +28,7 @@ struct AddMedicationView: View {
                 
                 Section(header: Text("Alım Koşulları")) {
                     Picker("Alım Durumu", selection: $intakeCondition) {
-                        ForEach([IntakeCondition.beforeMeal,
-                                IntakeCondition.afterMeal,
-                                IntakeCondition.withMeal,
-                                IntakeCondition.noMatter]) { condition in
+                        ForEach(intakeConditions, id: \.id) { condition in
                             Text(condition.rawValue).tag(condition)
                         }
                     }

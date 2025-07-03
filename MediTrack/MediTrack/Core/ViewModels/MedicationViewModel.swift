@@ -17,9 +17,6 @@ class MedicationViewModel: ObservableObject {
     func loadMedications() {
         // TODO: Implement persistence
         // For now, using sample data
-        let calendar = Calendar.current
-        let now = Date()
-        
         let morningTime = MedicationTime(hour: 9, minute: 0)
         let eveningTime = MedicationTime(hour: 21, minute: 0)
         

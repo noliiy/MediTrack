@@ -146,5 +146,6 @@ struct MedicationCardView: View {
         onTaken: {}
     )
     .padding(.vertical)
-} 
-} 
+    }
+        
+

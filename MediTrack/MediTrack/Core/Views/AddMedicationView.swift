@@ -10,6 +10,7 @@ struct AddMedicationView: View {
     @State private var selectedHour = 9
     @State private var selectedMinute = 0
     @State private var notes = ""
+    @State private var showAlert = false
     
     var body: some View {
         NavigationView {
@@ -113,7 +114,6 @@ struct AddMedicationView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("İptal") {
-                        viewModel.dispatch(.hideAddMedication)
                         dismiss()
                     }
                     .foregroundColor(.theme.secondary)
@@ -128,10 +128,23 @@ struct AddMedicationView: View {
                     .disabled(name.isEmpty || dosage.isEmpty)
                 }
             }
+            .alert("İlaç Kaydedildi", isPresented: $showAlert) {
+                Button("Tamam", role: .cancel) {
+                    dismiss()
+                }
+            } message: {
+                Text("\(name) başarıyla kaydedildi.")
+            }
         }
     }
     
     private func saveMedication() {
+        print("İlaç kaydetme işlemi başladı")
+        print("İlaç Adı: \(name)")
+        print("Doz: \(dosage)")
+        print("Alım Koşulu: \(intakeCondition.rawValue)")
+        print("Zaman: \(selectedHour):\(selectedMinute)")
+        
         let medicationTime = MedicationTime(hour: selectedHour, minute: selectedMinute)
         
         let newMedication = Medication(
@@ -144,7 +157,9 @@ struct AddMedicationView: View {
         )
         
         viewModel.dispatch(.addMedication(newMedication))
-        dismiss()
+        print("İlaç viewModel'e eklendi")
+        
+        showAlert = true
     }
 }
 

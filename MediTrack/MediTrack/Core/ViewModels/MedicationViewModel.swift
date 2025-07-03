@@ -26,6 +26,7 @@ final class MedicationViewModel: ObservableObject {
     private let notificationService = NotificationService.shared
     
     init() {
+        print("MedicationViewModel initialized")
         loadMedications()
         updateTodaysMedications()
         notificationService.requestAuthorization()
@@ -33,6 +34,8 @@ final class MedicationViewModel: ObservableObject {
     
     // MARK: - Public Methods
     func dispatch(_ action: MedicationViewAction) {
+        print("Dispatching action: \(String(describing: action))")
+        
         switch action {
         case .addMedication(let medication):
             addMedication(medication)
@@ -73,6 +76,7 @@ final class MedicationViewModel: ObservableObject {
     
     // MARK: - Private Methods
     private func loadMedications() {
+        print("Loading medications")
         // TODO: Implement persistence
         let morningTime = MedicationTime(hour: 9, minute: 0)
         let eveningTime = MedicationTime(hour: 21, minute: 0)
@@ -87,12 +91,15 @@ final class MedicationViewModel: ObservableObject {
         )
         
         state.medications = [sampleMed]
+        print("Loaded medications count: \(state.medications.count)")
+        
         state.medications.forEach { medication in
             notificationService.scheduleMedicationReminder(for: medication)
         }
     }
     
     private func updateTodaysMedications() {
+        print("Updating today's medications")
         let today = Calendar.current.startOfDay(for: Date())
         state.todaysMedications = state.medications.filter { medication in
             medication.times.contains { time in
@@ -100,23 +107,32 @@ final class MedicationViewModel: ObservableObject {
                 return Calendar.current.isDate(medicationDate, inSameDayAs: today)
             }
         }
+        print("Today's medications count: \(state.todaysMedications.count)")
     }
     
     private func addMedication(_ medication: Medication) {
+        print("Adding new medication: \(medication.name)")
         state.medications.append(medication)
         notificationService.scheduleMedicationReminder(for: medication)
         updateTodaysMedications()
+        print("Current medications count: \(state.medications.count)")
     }
     
     private func markMedicationTaken(_ medication: Medication) {
+        print("Marking medication as taken: \(medication.name)")
         if let index = state.medications.firstIndex(where: { $0.id == medication.id }) {
             state.medications[index].takenDoses.append(Date())
             updateTodaysMedications()
+            print("Medication marked as taken successfully")
+        } else {
+            print("Failed to mark medication as taken: medication not found")
         }
     }
     
     private func deleteMedication(_ medication: Medication) {
+        print("Deleting medication: \(medication.name)")
         state.medications.removeAll { $0.id == medication.id }
         updateTodaysMedications()
+        print("Current medications count after deletion: \(state.medications.count)")
     }
 } 

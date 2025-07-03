@@ -1,30 +1,50 @@
 import SwiftUI
 
 struct BottomMenuView: View {
+    @Binding var selectedTab: Int
+    
     var body: some View {
         HStack(spacing: 120) {
-            VStack(spacing: 8) {
-                Image(systemName: "pills.fill")
-                    .font(.system(size: 24))
-                Text("Ana Sayfa")
-                    .font(.caption)
+            TabButton(
+                icon: "pills.fill",
+                title: "Ana Sayfa",
+                isSelected: selectedTab == 0
+            ) {
+                selectedTab = 0
             }
-            .foregroundColor(.theme.primary)
             
-            VStack(spacing: 8) {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 24))
-                Text("Tamamlandı")
-                    .font(.caption)
+            TabButton(
+                icon: "checkmark.circle.fill",
+                title: "Tamamlandı",
+                isSelected: selectedTab == 1
+            ) {
+                selectedTab = 1
             }
-            .foregroundColor(.theme.primary)
         }
         .padding(.vertical)
         .background(Color.theme.background)
     }
 }
 
+struct TabButton: View {
+    let icon: String
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 24))
+                Text(title)
+                    .font(.caption)
+            }
+            .foregroundColor(isSelected ? .theme.primary : .theme.secondaryText)
+        }
+    }
+}
+
 #Preview {
-    BottomMenuView()
-        .previewLayout(.sizeThatFits)
+    BottomMenuView(selectedTab: .constant(0))
 } 

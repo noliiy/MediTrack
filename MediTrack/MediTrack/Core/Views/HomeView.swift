@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @StateObject private var viewModel = MedicationViewModel()
+    @State private var selectedTab = 0
     
     var body: some View {
         VStack {
@@ -19,7 +20,7 @@ struct HomeView: View {
             }
             
             // Alt Menü
-            BottomMenuView()
+            BottomMenuView(selectedTab: $selectedTab)
         }
         .background(Color.theme.background.ignoresSafeArea())
         .navigationBarItems(
@@ -107,6 +108,8 @@ struct MedicationStatusView: View {
 }
 
 struct BottomMenuView: View {
+    @Binding var selectedTab: Int
+    
     var body: some View {
         HStack(spacing: 120) {
             VStack(spacing: 8) {

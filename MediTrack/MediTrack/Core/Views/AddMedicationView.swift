@@ -107,8 +107,14 @@ struct AddMedicationView: View {
                                 )
                         }
                         
+                        Spacer()
+                        
                         // Kaydet Butonu
-                        Button(action: saveMedication) {
+                        Button(action: {
+                            withAnimation {
+                                saveMedication()
+                            }
+                        }) {
                             HStack {
                                 if isLoading {
                                     ProgressView()
@@ -118,16 +124,14 @@ struct AddMedicationView: View {
                                 
                                 Text("Kaydet")
                                     .font(.headline)
+                                    .foregroundColor(.white)
                             }
                             .frame(maxWidth: .infinity)
-                            .padding()
+                            .padding(.vertical, 16)
                             .background(
-                                name.isEmpty || dosage.isEmpty ?
-                                Color.theme.primary.opacity(0.5) :
-                                Color.theme.primary
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(name.isEmpty || dosage.isEmpty ? Color.theme.primary.opacity(0.5) : Color.theme.primary)
                             )
-                            .foregroundColor(.white)
-                            .cornerRadius(16)
                         }
                         .disabled(name.isEmpty || dosage.isEmpty || isLoading)
                         .padding(.top, 16)
@@ -156,22 +160,25 @@ struct AddMedicationView: View {
     }
     
     private func saveMedication() {
+        guard !name.isEmpty && !dosage.isEmpty else { return }
+        
         isLoading = true
         
-        // Simüle edilmiş gecikme (gerçek uygulamada kaldırılabilir)
+        let medicationTime = MedicationTime(hour: selectedHour, minute: selectedMinute)
+        let newMedication = Medication(
+            name: name,
+            dosage: dosage,
+            intakeCondition: intakeCondition,
+            frequency: 1,
+            times: [medicationTime],
+            notes: notes.isEmpty ? nil : notes
+        )
+        
+        // İlaç ekleme işlemi
+        viewModel.dispatch(.addMedication(newMedication))
+        
+        // Kullanıcı geri bildirimi
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            let medicationTime = MedicationTime(hour: selectedHour, minute: selectedMinute)
-            
-            let newMedication = Medication(
-                name: name,
-                dosage: dosage,
-                intakeCondition: intakeCondition,
-                frequency: 1,
-                times: [medicationTime],
-                notes: notes.isEmpty ? nil : notes
-            )
-            
-            viewModel.dispatch(.addMedication(newMedication))
             isLoading = false
             showAlert = true
         }

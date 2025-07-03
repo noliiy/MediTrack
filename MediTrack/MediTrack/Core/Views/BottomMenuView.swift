@@ -30,7 +30,7 @@ struct BottomMenuView: View {
     }
 }
 
-struct TabButton: View {
+private struct TabButton: View {
     let icon: String
     let title: String
     let isSelected: Bool

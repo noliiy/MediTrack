@@ -11,6 +11,7 @@ struct AddMedicationView: View {
     @State private var selectedMinute = 0
     @State private var notes = ""
     @State private var showAlert = false
+    @State private var isLoading = false
     
     var body: some View {
         NavigationView {
@@ -105,6 +106,31 @@ struct AddMedicationView: View {
                                         .stroke(Color.theme.secondaryBackground, lineWidth: 1)
                                 )
                         }
+                        
+                        // Kaydet Butonu
+                        Button(action: saveMedication) {
+                            HStack {
+                                if isLoading {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                        .padding(.trailing, 8)
+                                }
+                                
+                                Text("Kaydet")
+                                    .font(.headline)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(
+                                name.isEmpty || dosage.isEmpty ?
+                                Color.theme.primary.opacity(0.5) :
+                                Color.theme.primary
+                            )
+                            .foregroundColor(.white)
+                            .cornerRadius(16)
+                        }
+                        .disabled(name.isEmpty || dosage.isEmpty || isLoading)
+                        .padding(.top, 16)
                     }
                     .padding(24)
                 }
@@ -118,15 +144,6 @@ struct AddMedicationView: View {
                     }
                     .foregroundColor(.theme.secondary)
                 }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Kaydet") {
-                        saveMedication()
-                    }
-                    .font(.body.bold())
-                    .foregroundColor(.theme.primary)
-                    .disabled(name.isEmpty || dosage.isEmpty)
-                }
             }
             .alert("İlaç Kaydedildi", isPresented: $showAlert) {
                 Button("Tamam", role: .cancel) {
@@ -139,27 +156,25 @@ struct AddMedicationView: View {
     }
     
     private func saveMedication() {
-        print("İlaç kaydetme işlemi başladı")
-        print("İlaç Adı: \(name)")
-        print("Doz: \(dosage)")
-        print("Alım Koşulu: \(intakeCondition.rawValue)")
-        print("Zaman: \(selectedHour):\(selectedMinute)")
+        isLoading = true
         
-        let medicationTime = MedicationTime(hour: selectedHour, minute: selectedMinute)
-        
-        let newMedication = Medication(
-            name: name,
-            dosage: dosage,
-            intakeCondition: intakeCondition,
-            frequency: 1,
-            times: [medicationTime],
-            notes: notes.isEmpty ? nil : notes
-        )
-        
-        viewModel.dispatch(.addMedication(newMedication))
-        print("İlaç viewModel'e eklendi")
-        
-        showAlert = true
+        // Simüle edilmiş gecikme (gerçek uygulamada kaldırılabilir)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            let medicationTime = MedicationTime(hour: selectedHour, minute: selectedMinute)
+            
+            let newMedication = Medication(
+                name: name,
+                dosage: dosage,
+                intakeCondition: intakeCondition,
+                frequency: 1,
+                times: [medicationTime],
+                notes: notes.isEmpty ? nil : notes
+            )
+            
+            viewModel.dispatch(.addMedication(newMedication))
+            isLoading = false
+            showAlert = true
+        }
     }
 }
 

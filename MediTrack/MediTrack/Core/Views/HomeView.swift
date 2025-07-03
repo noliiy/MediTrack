@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @StateObject private var viewModel = MedicationViewModel()
     @State private var selectedTab = 0
+    @State private var showingAddMedication = false
     
     var body: some View {
         NavigationView {
@@ -76,33 +77,48 @@ struct HomeView: View {
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
                     
+                    // Toolbar
+                    CustomToolbar(showingAddMedication: $showingAddMedication)
+                        .padding(.bottom, 8)
+                    
                     // Alt Menü
                     BottomMenuView(selectedTab: $selectedTab)
                 }
             }
-            .navigationBarItems(
-                leading: Text("MediTrack")
-                    .font(.title2.bold())
-                    .foregroundColor(.theme.text),
-                trailing: Button(action: {
-                    viewModel.dispatch(.showAddMedication)
-                }) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.theme.primary)
-                }
-            )
+            .navigationBarTitle("MediTrack", displayMode: .inline)
         }
-        .sheet(isPresented: .init(
-            get: { viewModel.state.showingAddMedication },
-            set: { isPresented in
-                if !isPresented {
-                    viewModel.dispatch(.hideAddMedication)
-                }
-            }
-        )) {
+        .sheet(isPresented: $showingAddMedication) {
             AddMedicationView(viewModel: viewModel)
         }
+    }
+}
+
+// MARK: - Custom Toolbar
+struct CustomToolbar: View {
+    @Binding var showingAddMedication: Bool
+    
+    var body: some View {
+        HStack(spacing: 20) {
+            Spacer()
+            
+            Button(action: { showingAddMedication = true }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                    Text("İlaç Ekle")
+                        .font(.headline)
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(Color.theme.primary)
+                .cornerRadius(25)
+                .shadow(color: Color.theme.primary.opacity(0.3), radius: 10, x: 0, y: 5)
+            }
+            
+            Spacer()
+        }
+        .padding(.horizontal)
     }
 }
 
@@ -174,8 +190,6 @@ private struct MedicationStatusView: View {
         .padding(.horizontal)
     }
 }
-
-// BottomMenuView is defined in a separate file
 
 #Preview {
     HomeView()

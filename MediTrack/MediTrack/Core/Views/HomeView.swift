@@ -13,30 +13,64 @@ struct HomeView: View {
                 VStack(spacing: 0) {
                     TabView(selection: $selectedTab) {
                         // Ana Sayfa
-                        VStack {
-                            // Günlük İlerleme Kartı
-                            ProgressCard(progress: viewModel.getDailyProgress())
-                                .padding(.horizontal)
-                                .padding(.top, 20)
-                            
-                            // İlaç Durumu
-                            if let condition = viewModel.state.todaysMedications.first?.intakeCondition {
-                                MedicationStatusView(condition: condition)
-                                    .padding(.top, 20)
+                        ScrollView {
+                            VStack(spacing: 24) {
+                                // Günlük İlerleme Kartı
+                                ProgressCard(progress: viewModel.getDailyProgress())
+                                    .padding(.horizontal)
+                                
+                                // İlaç Durumu
+                                if let condition = viewModel.state.todaysMedications.first?.intakeCondition {
+                                    MedicationStatusView(condition: condition)
+                                }
+                                
+                                // Bugünkü İlaçlar
+                                VStack(alignment: .leading, spacing: 16) {
+                                    Text("Bugünkü İlaçlar")
+                                        .font(.title2.bold())
+                                        .foregroundColor(.theme.text)
+                                        .padding(.horizontal)
+                                    
+                                    ForEach(viewModel.state.todaysMedications) { medication in
+                                        MedicationCardView(
+                                            medication: medication,
+                                            onTaken: {
+                                                viewModel.dispatch(.markMedicationTaken(medication))
+                                            }
+                                        )
+                                    }
+                                }
                             }
-                            
-                            Spacer()
+                            .padding(.top, 24)
                         }
                         .tag(0)
                         
                         // Tamamlanan İlaçlar
-                        VStack {
-                            Text("Tamamlanan İlaçlar")
-                                .font(.title2.bold())
-                                .foregroundColor(.theme.text)
+                        ScrollView {
+                            VStack(spacing: 24) {
+                                // Genel Uyum Grafiği
+                                AdherenceChartView(adherenceData: [
+                                    viewModel.getOverallAdherence()
+                                ])
+                                .frame(height: 300)
                                 .padding()
-                            
-                            Spacer()
+                                
+                                // Tamamlanan İlaçlar Listesi
+                                VStack(alignment: .leading, spacing: 16) {
+                                    Text("Tamamlanan İlaçlar")
+                                        .font(.title2.bold())
+                                        .foregroundColor(.theme.text)
+                                        .padding(.horizontal)
+                                    
+                                    ForEach(viewModel.state.medications.filter { !$0.takenDoses.isEmpty }) { medication in
+                                        MedicationCardView(
+                                            medication: medication,
+                                            onTaken: {}
+                                        )
+                                    }
+                                }
+                            }
+                            .padding(.top, 24)
                         }
                         .tag(1)
                     }
@@ -47,6 +81,9 @@ struct HomeView: View {
                 }
             }
             .navigationBarItems(
+                leading: Text("MediTrack")
+                    .font(.title2.bold())
+                    .foregroundColor(.theme.text),
                 trailing: Button(action: {
                     viewModel.dispatch(.showAddMedication)
                 }) {
@@ -75,23 +112,23 @@ private struct ProgressCard: View {
     @State private var showProgress = false
     
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 16) {
             Text("Günlük İlerleme")
-                .font(.title3)
+                .font(.title3.bold())
                 .foregroundColor(.white)
             
             ZStack {
                 Circle()
-                    .stroke(Color.white.opacity(0.3), lineWidth: 10)
+                    .stroke(Color.white.opacity(0.3), lineWidth: 12)
                 
                 Circle()
                     .trim(from: 0, to: showProgress ? progress : 0)
-                    .stroke(Color.white, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                    .stroke(Color.white, style: StrokeStyle(lineWidth: 12, lineCap: .round))
                     .rotationEffect(.degrees(-90))
                 
                 VStack(spacing: 4) {
                     Text("\(Int(progress * 100))%")
-                        .font(.system(size: 40, weight: .bold))
+                        .font(.system(size: 44, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                     
                     Text("Tamamlandı")
@@ -101,9 +138,12 @@ private struct ProgressCard: View {
             }
             .padding(40)
         }
-        .padding()
-        .background(Color.theme.primary)
-        .cornerRadius(20)
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(Color.theme.primaryGradient)
+        )
+        .shadow(color: Color.theme.primary.opacity(0.3), radius: 20, x: 0, y: 10)
         .onAppear {
             withAnimation(.easeInOut(duration: 1)) {
                 showProgress = true
@@ -116,19 +156,22 @@ private struct MedicationStatusView: View {
     let condition: IntakeCondition
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 12) {
             Image(systemName: "clock")
-                .font(.system(size: 24))
+                .font(.system(size: 28, weight: .medium))
                 .foregroundColor(.theme.primary)
             
             Text(condition.rawValue)
-                .font(.system(size: 16))
+                .font(.system(.body, design: .rounded))
                 .foregroundColor(.theme.primary)
                 .multilineTextAlignment(.center)
         }
-        .padding()
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 20)
         .background(Color.theme.cardBackground)
-        .cornerRadius(15)
+        .cornerRadius(20)
+        .shadow(color: Color.theme.shadowColor, radius: 15, x: 0, y: 5)
+        .padding(.horizontal)
     }
 }
 

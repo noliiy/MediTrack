@@ -8,20 +8,21 @@ struct MedicationCardView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            HStack(alignment: .top, spacing: 16) {
+            // Header
+            HStack(alignment: .center, spacing: 16) {
                 // İlaç İkonu
                 ZStack {
                     Circle()
                         .fill(Color.theme.primary.opacity(0.1))
-                        .frame(width: 50, height: 50)
+                        .frame(width: 56, height: 56)
                     
                     Image(systemName: "pills.fill")
-                        .font(.system(size: 24))
+                        .font(.system(size: 24, weight: .medium))
                         .foregroundColor(Color.theme.primary)
                 }
                 
                 // İlaç Bilgileri
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(medication.name)
                         .font(.title3.bold())
                         .foregroundColor(.theme.text)
@@ -29,29 +30,6 @@ struct MedicationCardView: View {
                     Text(medication.dosage)
                         .font(.subheadline)
                         .foregroundColor(.theme.secondaryText)
-                    
-                    HStack(spacing: 8) {
-                        Label(
-                            medication.intakeCondition.rawValue,
-                            systemImage: "clock.fill"
-                        )
-                        .font(.caption)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.theme.primary.opacity(0.1))
-                        .foregroundColor(Color.theme.primary)
-                        .cornerRadius(8)
-                        
-                        ForEach(medication.times) { time in
-                            Text("\(time.hour):\(String(format: "%02d", time.minute))")
-                                .font(.caption)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.theme.secondary.opacity(0.1))
-                                .foregroundColor(Color.theme.secondary)
-                                .cornerRadius(8)
-                        }
-                    }
                 }
                 
                 Spacer()
@@ -71,40 +49,86 @@ struct MedicationCardView: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(Color.theme.primary.opacity(0.1))
-                            .frame(width: 44, height: 44)
+                            .fill(Color.theme.success.opacity(0.1))
+                            .frame(width: 48, height: 48)
                         
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(Color.theme.primary)
+                            .foregroundColor(Color.theme.success)
                             .scaleEffect(animateCheck ? 1.2 : 1.0)
                     }
                 }
             }
-            .padding()
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            
+            // Divider
+            Rectangle()
+                .fill(Color.theme.secondaryBackground)
+                .frame(height: 1)
+                .padding(.horizontal, 20)
+            
+            // Details
+            VStack(spacing: 12) {
+                // Alım Zamanları
+                HStack(spacing: 8) {
+                    ForEach(medication.times) { time in
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock.fill")
+                                .font(.system(size: 12))
+                            Text("\(time.hour):\(String(format: "%02d", time.minute))")
+                                .font(.system(.caption, design: .rounded))
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.theme.primary.opacity(0.1))
+                        .foregroundColor(Color.theme.primary)
+                        .cornerRadius(12)
+                    }
+                }
+                
+                // Alım Koşulu
+                HStack(spacing: 4) {
+                    Image(systemName: "info.circle.fill")
+                        .font(.system(size: 12))
+                    Text(medication.intakeCondition.rawValue)
+                        .font(.system(.caption, design: .rounded))
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color.theme.secondary.opacity(0.1))
+                .foregroundColor(Color.theme.secondary)
+                .cornerRadius(12)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
             
             // Notlar (eğer varsa)
             if let notes = medication.notes {
                 VStack(alignment: .leading, spacing: 8) {
-                    Divider()
-                        .background(Color.theme.secondary.opacity(0.2))
+                    Rectangle()
+                        .fill(Color.theme.secondaryBackground)
+                        .frame(height: 1)
+                        .padding(.horizontal, 20)
                     
-                    HStack {
+                    HStack(alignment: .top, spacing: 12) {
                         Image(systemName: "text.quote")
+                            .font(.system(size: 16, weight: .medium))
                             .foregroundColor(.theme.secondary)
                         
                         Text(notes)
-                            .font(.footnote)
+                            .font(.system(.footnote))
                             .foregroundColor(.theme.secondaryText)
+                            .lineSpacing(4)
                     }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
                 }
             }
         }
         .background(Color.theme.cardBackground)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .shadow(color: Color.theme.shadowColor, radius: 15, x: 0, y: 5)
         .padding(.horizontal)
     }
 }
@@ -121,4 +145,6 @@ struct MedicationCardView: View {
         ),
         onTaken: {}
     )
+    .padding(.vertical)
+} 
 } 

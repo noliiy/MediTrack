@@ -6,27 +6,31 @@ extension Color {
 
 struct ColorTheme {
     // Main Colors
-    let primary = Color(red: 0.45, green: 0.73, blue: 0.98) // Pastel Blue
-    let secondary = Color(red: 0.96, green: 0.76, blue: 0.76) // Pastel Pink
-    let accent = Color(red: 0.75, green: 0.87, blue: 0.69) // Pastel Green
+    let primary = Color(red: 0.32, green: 0.59, blue: 0.89) // Modern Blue
+    let secondary = Color(red: 0.95, green: 0.61, blue: 0.07) // Warm Orange
+    let accent = Color(red: 0.18, green: 0.80, blue: 0.44) // Fresh Green
     
     // Background Colors
-    let background = Color(red: 0.96, green: 0.96, blue: 0.98) // Light Gray Blue
+    let background = Color(red: 0.98, green: 0.98, blue: 0.98) // Light Gray
     let cardBackground = Color.white
+    let secondaryBackground = Color(red: 0.96, green: 0.96, blue: 0.96) // Slightly Darker Gray
     
     // Text Colors
-    let text = Color(red: 0.2, green: 0.2, blue: 0.3)
-    let secondaryText = Color(red: 0.5, green: 0.5, blue: 0.6)
+    let text = Color(red: 0.13, green: 0.18, blue: 0.24) // Dark Blue Gray
+    let secondaryText = Color(red: 0.50, green: 0.55, blue: 0.60) // Medium Gray
     
     // Status Colors
-    let success = Color(red: 0.7, green: 0.85, blue: 0.75) // Soft Green
-    let warning = Color(red: 0.95, green: 0.85, blue: 0.6) // Soft Yellow
-    let error = Color(red: 0.95, green: 0.7, blue: 0.7) // Soft Red
+    let success = Color(red: 0.18, green: 0.80, blue: 0.44) // Green
+    let warning = Color(red: 0.95, green: 0.61, blue: 0.07) // Orange
+    let error = Color(red: 0.89, green: 0.21, blue: 0.21) // Red
     
     // Gradients
     var primaryGradient: LinearGradient {
         LinearGradient(
-            colors: [primary.opacity(0.8), primary],
+            colors: [
+                Color(red: 0.32, green: 0.59, blue: 0.89),
+                Color(red: 0.24, green: 0.54, blue: 0.87)
+            ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
@@ -34,9 +38,21 @@ struct ColorTheme {
     
     var cardGradient: LinearGradient {
         LinearGradient(
-            colors: [Color.white, Color.white.opacity(0.95)],
+            colors: [
+                Color.white,
+                Color(red: 0.98, green: 0.98, blue: 0.98)
+            ],
             startPoint: .top,
             endPoint: .bottom
         )
+    }
+    
+    // Shadows
+    var shadowColor: Color {
+        Color.black.opacity(0.1)
+    }
+    
+    var lightShadow: Color {
+        Color.white.opacity(0.9)
     }
 } 

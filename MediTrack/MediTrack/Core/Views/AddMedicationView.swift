@@ -9,81 +9,125 @@ struct AddMedicationView: View {
     @State private var intakeCondition: IntakeCondition = .afterMeal
     @State private var selectedHour = 9
     @State private var selectedMinute = 0
+    @State private var notes = ""
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 24) {
-                // İlaç Adı
-                TextField("İlaç Adı", text: $name)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding(.horizontal)
+            ZStack {
+                Color.theme.background
+                    .ignoresSafeArea()
                 
-                // Doz
-                TextField("Doz (örn: 100mg)", text: $dosage)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding(.horizontal)
-                
-                // Alım Koşulu
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Alım Koşulu")
-                        .font(.subheadline)
-                        .foregroundColor(.theme.secondaryText)
-                    
-                    Picker("Alım Koşulu", selection: $intakeCondition) {
-                        ForEach([IntakeCondition.beforeMeal,
-                                IntakeCondition.afterMeal,
-                                IntakeCondition.withMeal,
-                                IntakeCondition.noMatter]) { condition in
-                            Text(condition.rawValue).tag(condition)
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // İlaç Adı
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("İlaç Adı", systemImage: "pills")
+                                .font(.headline)
+                                .foregroundColor(.theme.text)
+                            
+                            TextField("Örn: Aspirin", text: $name)
+                                .textFieldStyle(CustomTextFieldStyle())
+                        }
+                        
+                        // Doz
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("Doz", systemImage: "scalemass")
+                                .font(.headline)
+                                .foregroundColor(.theme.text)
+                            
+                            TextField("Örn: 100mg", text: $dosage)
+                                .textFieldStyle(CustomTextFieldStyle())
+                        }
+                        
+                        // Alım Koşulu
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("Alım Koşulu", systemImage: "clock")
+                                .font(.headline)
+                                .foregroundColor(.theme.text)
+                            
+                            Picker("Alım Koşulu", selection: $intakeCondition) {
+                                ForEach([IntakeCondition.beforeMeal,
+                                        IntakeCondition.afterMeal,
+                                        IntakeCondition.withMeal,
+                                        IntakeCondition.noMatter]) { condition in
+                                    Text(condition.rawValue).tag(condition)
+                                }
+                            }
+                            .pickerStyle(SegmentedPickerStyle())
+                        }
+                        
+                        // Zaman Seçimi
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("Alım Zamanı", systemImage: "alarm")
+                                .font(.headline)
+                                .foregroundColor(.theme.text)
+                            
+                            HStack {
+                                Picker("Saat", selection: $selectedHour) {
+                                    ForEach(0..<24) { hour in
+                                        Text("\(hour)").tag(hour)
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(width: 100)
+                                
+                                Text(":")
+                                    .font(.title2.bold())
+                                    .foregroundColor(.theme.text)
+                                
+                                Picker("Dakika", selection: $selectedMinute) {
+                                    ForEach(0..<60) { minute in
+                                        Text(String(format: "%02d", minute)).tag(minute)
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(width: 100)
+                            }
+                            .padding()
+                            .background(Color.theme.cardBackground)
+                            .cornerRadius(16)
+                        }
+                        
+                        // Notlar
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("Notlar", systemImage: "text.quote")
+                                .font(.headline)
+                                .foregroundColor(.theme.text)
+                            
+                            TextEditor(text: $notes)
+                                .frame(height: 100)
+                                .padding(12)
+                                .background(Color.theme.cardBackground)
+                                .cornerRadius(16)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.theme.secondaryBackground, lineWidth: 1)
+                                )
                         }
                     }
-                    .pickerStyle(SegmentedPickerStyle())
+                    .padding(24)
                 }
-                .padding(.horizontal)
-                
-                // Zaman Seçimi
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Alım Zamanı")
-                        .font(.subheadline)
-                        .foregroundColor(.theme.secondaryText)
-                    
-                    HStack {
-                        Picker("Saat", selection: $selectedHour) {
-                            ForEach(0..<24) { hour in
-                                Text("\(hour)").tag(hour)
-                            }
-                        }
-                        .pickerStyle(WheelPickerStyle())
-                        .frame(width: 100)
-                        
-                        Text(":")
-                            .font(.title2)
-                        
-                        Picker("Dakika", selection: $selectedMinute) {
-                            ForEach(0..<60) { minute in
-                                Text(String(format: "%02d", minute)).tag(minute)
-                            }
-                        }
-                        .pickerStyle(WheelPickerStyle())
-                        .frame(width: 100)
-                    }
-                }
-                .padding(.horizontal)
-                
-                Spacer()
             }
-            .padding(.top, 20)
             .navigationTitle("Yeni İlaç Ekle")
-            .navigationBarItems(
-                leading: Button("İptal") {
-                    viewModel.dispatch(.hideAddMedication)
-                    dismiss()
-                },
-                trailing: Button("Kaydet") {
-                    saveMedication()
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("İptal") {
+                        viewModel.dispatch(.hideAddMedication)
+                        dismiss()
+                    }
+                    .foregroundColor(.theme.secondary)
                 }
-                .disabled(name.isEmpty || dosage.isEmpty)
-            )
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Kaydet") {
+                        saveMedication()
+                    }
+                    .font(.body.bold())
+                    .foregroundColor(.theme.primary)
+                    .disabled(name.isEmpty || dosage.isEmpty)
+                }
+            }
         }
     }
     
@@ -95,11 +139,26 @@ struct AddMedicationView: View {
             dosage: dosage,
             intakeCondition: intakeCondition,
             frequency: 1,
-            times: [medicationTime]
+            times: [medicationTime],
+            notes: notes.isEmpty ? nil : notes
         )
         
         viewModel.dispatch(.addMedication(newMedication))
         dismiss()
+    }
+}
+
+// MARK: - Custom Styles
+struct CustomTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .padding(12)
+            .background(Color.theme.cardBackground)
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.theme.secondaryBackground, lineWidth: 1)
+            )
     }
 }
 

@@ -2,120 +2,310 @@ import SwiftUI
 
 struct HomeView: View {
     @StateObject private var viewModel = MedicationViewModel()
+    @State private var selectedTab = 0
+    @Namespace private var animation
     
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(spacing: 20) {
-                    AdherenceChartView(adherenceData: viewModel.getAdherenceData())
-                        .frame(height: 200)
-                        .padding()
+        ZStack {
+            Color.theme.background
+                .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                headerView
+                
+                TabView(selection: $selectedTab) {
+                    todayView
+                        .tag(0)
                     
-                    TodaysMedicationsView(medications: viewModel.todaysMedications) { medication in
-                        viewModel.markMedicationAsTaken(medication)
-                    }
+                    statisticsView
+                        .tag(1)
+                    
+                    settingsView
+                        .tag(2)
                 }
-                .padding()
-            }
-            .background(Color.theme.background)
-            .navigationTitle("MediTrack")
-            .navigationBarItems(trailing:
-                Button(action: {
-                    viewModel.showingAddMedication = true
-                }) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title2)
-                }
-            )
-            .sheet(isPresented: $viewModel.showingAddMedication) {
-                AddMedicationView(viewModel: viewModel)
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                
+                customTabBar
             }
         }
-    }
-}
-
-struct TodaysMedicationsView: View {
-    let medications: [Medication]
-    let onMedicationTaken: (Medication) -> Void
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Bugünkü İlaçlar")
-                .font(.title2)
-                .foregroundColor(Color.theme.text)
-            
-            if medications.isEmpty {
-                Text("Bugün için planlanmış ilaç bulunmuyor")
-                    .foregroundColor(Color.theme.secondary)
-                    .padding()
-            } else {
-                ForEach(medications) { medication in
-                    MedicationCardView(medication: medication, onTaken: {
-                        onMedicationTaken(medication)
-                    })
-                }
-            }
+        .sheet(isPresented: $viewModel.showingAddMedication) {
+            AddMedicationView(viewModel: viewModel)
         }
     }
-}
-
-struct MedicationCardView: View {
-    let medication: Medication
-    let onTaken: () -> Void
-    @State private var showingDetails = false
     
-    var body: some View {
-        VStack(spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(medication.name)
-                        .font(.headline)
-                        .foregroundColor(Color.theme.text)
-                    
-                    Text(medication.dosage)
-                        .font(.subheadline)
-                        .foregroundColor(Color.theme.secondary)
-                    
-                    Text(medication.intakeCondition.rawValue)
-                        .font(.caption)
-                        .foregroundColor(Color.theme.primary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.theme.primary.opacity(0.1))
-                        .cornerRadius(8)
-                }
+    private var headerView: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Merhaba")
+                    .font(.title3)
+                    .foregroundColor(.theme.secondaryText)
                 
-                Spacer()
-                
-                Button(action: onTaken) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(Color.theme.primary)
-                        .font(.title2)
-                }
+                Text("İlaç Zamanı")
+                    .font(.title.bold())
+                    .foregroundColor(.theme.text)
             }
             
-            if let notes = medication.notes {
-                Text(notes)
-                    .font(.caption)
-                    .foregroundColor(Color.theme.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
+            Spacer()
             
-            ForEach(medication.times) { time in
-                HStack {
-                    Image(systemName: "clock")
-                        .foregroundColor(Color.theme.secondary)
-                    Text("\(time.hour):\(String(format: "%02d", time.minute))")
-                        .font(.caption)
-                        .foregroundColor(Color.theme.text)
-                    Spacer()
-                }
+            Button(action: {
+                viewModel.showingAddMedication = true
+            }) {
+                Image(systemName: "plus.circle.fill")
+                    .font(.title2)
+                    .foregroundColor(.theme.primary)
+                    .padding(8)
+                    .background(Color.theme.cardBackground)
+                    .clipShape(Circle())
             }
         }
         .padding()
-        .background(Color.white)
-        .cornerRadius(12)
-        .shadow(radius: 2)
+    }
+    
+    private var todayView: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Günlük İlerleme Kartı
+                DailyProgressCard(progress: viewModel.getDailyProgress())
+                    .transition(.scale)
+                
+                // Bugünkü İlaçlar
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Bugünkü İlaçlar")
+                        .font(.title2.bold())
+                        .foregroundColor(.theme.text)
+                        .padding(.horizontal)
+                    
+                    if viewModel.todaysMedications.isEmpty {
+                        EmptyMedicationView()
+                    } else {
+                        ForEach(viewModel.todaysMedications) { medication in
+                            MedicationCardView(medication: medication) {
+                                withAnimation {
+                                    viewModel.markMedicationAsTaken(medication)
+                                }
+                            }
+                            .transition(.asymmetric(insertion: .scale.combined(with: .opacity),
+                                                  removal: .scale.combined(with: .opacity)))
+                        }
+                    }
+                }
+            }
+            .padding(.top)
+        }
+    }
+    
+    private var statisticsView: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // İlaç Uyum Grafiği
+                AdherenceChartView(adherenceData: viewModel.getAdherenceData())
+                    .frame(height: 200)
+                    .padding()
+                    .background(Color.theme.cardBackground)
+                    .cornerRadius(20)
+                
+                // Aylık İstatistikler
+                MonthlyStatsView(viewModel: viewModel)
+            }
+            .padding()
+        }
+    }
+    
+    private var settingsView: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Ayarlar içeriği gelecek
+                Text("Ayarlar")
+                    .font(.title)
+            }
+            .padding()
+        }
+    }
+    
+    private var customTabBar: some View {
+        HStack {
+            ForEach(0..<3) { index in
+                Spacer()
+                TabBarButton(
+                    imageName: tabBarImageName(for: index),
+                    title: tabBarTitle(for: index),
+                    isSelected: selectedTab == index,
+                    animation: animation
+                ) {
+                    withAnimation {
+                        selectedTab = index
+                    }
+                }
+                Spacer()
+            }
+        }
+        .padding(.vertical, 10)
+        .background(Color.theme.cardBackground)
+    }
+    
+    private func tabBarImageName(for index: Int) -> String {
+        switch index {
+        case 0: return "house.fill"
+        case 1: return "chart.bar.fill"
+        case 2: return "gearshape.fill"
+        default: return ""
+        }
+    }
+    
+    private func tabBarTitle(for index: Int) -> String {
+        switch index {
+        case 0: return "Ana Sayfa"
+        case 1: return "İstatistik"
+        case 2: return "Ayarlar"
+        default: return ""
+        }
+    }
+}
+
+struct TabBarButton: View {
+    let imageName: String
+    let title: String
+    let isSelected: Bool
+    let animation: Namespace.ID
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: imageName)
+                    .font(.system(size: 24))
+                
+                Text(title)
+                    .font(.caption2)
+            }
+            .foregroundColor(isSelected ? .theme.primary : .theme.secondaryText)
+            .overlay(
+                ZStack {
+                    if isSelected {
+                        Circle()
+                            .fill(Color.theme.primary.opacity(0.2))
+                            .matchedGeometryEffect(id: "TAB", in: animation)
+                    }
+                }
+            )
+        }
+    }
+}
+
+struct DailyProgressCard: View {
+    let progress: Double
+    @State private var showProgress = false
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("Günlük İlerleme")
+                .font(.title3.bold())
+                .foregroundColor(.white)
+            
+            ZStack {
+                Circle()
+                    .stroke(Color.white.opacity(0.2), lineWidth: 15)
+                
+                Circle()
+                    .trim(from: 0, to: showProgress ? progress : 0)
+                    .stroke(Color.white, style: StrokeStyle(lineWidth: 15, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .animation(.spring(response: 1, dampingFraction: 0.8), value: showProgress)
+                
+                VStack {
+                    Text("\(Int(progress * 100))%")
+                        .font(.system(size: 44, weight: .bold))
+                        .foregroundColor(.white)
+                    
+                    Text("Tamamlandı")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.7))
+                }
+            }
+            .frame(width: 200, height: 200)
+        }
+        .padding()
+        .background(Color.theme.primaryGradient)
+        .cornerRadius(25)
+        .shadow(radius: 10)
+        .padding(.horizontal)
+        .onAppear {
+            showProgress = true
+        }
+    }
+}
+
+struct EmptyMedicationView: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "pills.fill")
+                .font(.system(size: 60))
+                .foregroundColor(.theme.secondary)
+            
+            Text("Bugün için planlanmış ilaç bulunmuyor")
+                .font(.headline)
+                .foregroundColor(.theme.secondaryText)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(40)
+        .background(Color.theme.cardBackground)
+        .cornerRadius(20)
+        .padding(.horizontal)
+    }
+}
+
+struct MonthlyStatsView: View {
+    @ObservedObject var viewModel: MedicationViewModel
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Aylık İstatistikler")
+                .font(.title3.bold())
+                .foregroundColor(.theme.text)
+            
+            HStack(spacing: 20) {
+                StatCard(
+                    title: "Toplam İlaç",
+                    value: "\(viewModel.medications.count)",
+                    icon: "pills.fill"
+                )
+                
+                StatCard(
+                    title: "Uyum Oranı",
+                    value: "\(Int(viewModel.getOverallAdherence()))%",
+                    icon: "chart.line.uptrend.xyaxis"
+                )
+            }
+        }
+    }
+}
+
+struct StatCard: View {
+    let title: String
+    let value: String
+    let icon: String
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 30))
+                .foregroundColor(.theme.primary)
+            
+            VStack(spacing: 4) {
+                Text(value)
+                    .font(.title2.bold())
+                    .foregroundColor(.theme.text)
+                
+                Text(title)
+                    .font(.caption)
+                    .foregroundColor(.theme.secondaryText)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(Color.theme.cardBackground)
+        .cornerRadius(15)
     }
 }
 

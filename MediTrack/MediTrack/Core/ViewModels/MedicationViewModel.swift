@@ -58,10 +58,32 @@ class MedicationViewModel: ObservableObject {
             medications[index].takenDoses.append(Date())
         }
         updateTodaysMedications()
+        objectWillChange.send()
     }
     
     func getAdherenceData() -> [Double] {
         return medications.map { $0.adherenceRate * 100 }
+    }
+    
+    func getDailyProgress() -> Double {
+        let totalDoses = todaysMedications.count
+        guard totalDoses > 0 else { return 0 }
+        
+        let takenDoses = todaysMedications.reduce(0) { count, medication in
+            let today = Calendar.current.startOfDay(for: Date())
+            let takenToday = medication.takenDoses.filter {
+                Calendar.current.isDate($0, inSameDayAs: today)
+            }.count
+            return count + takenToday
+        }
+        
+        return Double(takenDoses) / Double(totalDoses)
+    }
+    
+    func getOverallAdherence() -> Double {
+        let adherenceRates = medications.map { $0.adherenceRate }
+        guard !adherenceRates.isEmpty else { return 0 }
+        return (adherenceRates.reduce(0, +) / Double(adherenceRates.count)) * 100
     }
     
     func getMedicationStatus(_ medication: Medication) -> String {

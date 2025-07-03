@@ -5,51 +5,39 @@ struct BottomMenuView: View {
     
     var body: some View {
         HStack(spacing: 120) {
-            TabButton(
-                icon: "pills.fill",
-                title: "Ana Sayfa",
-                isSelected: selectedTab == 0
-            ) {
-                withAnimation {
-                    selectedTab = 0
+            Button(action: { selectedTab = 0 }) {
+                VStack(spacing: 8) {
+                    Image(systemName: "pills.fill")
+                        .font(.system(size: 24))
+                    Text("Ana Sayfa")
+                        .font(.caption)
                 }
+                .foregroundColor(selectedTab == 0 ? .theme.primary : .theme.secondaryText)
             }
             
-            TabButton(
-                icon: "checkmark.circle.fill",
-                title: "Tamamlandı",
-                isSelected: selectedTab == 1
-            ) {
-                withAnimation {
-                    selectedTab = 1
+            Button(action: { selectedTab = 1 }) {
+                VStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 24))
+                    Text("Tamamlandı")
+                        .font(.caption)
                 }
+                .foregroundColor(selectedTab == 1 ? .theme.primary : .theme.secondaryText)
             }
         }
         .padding(.vertical)
-        .background(Color.theme.cardBackground)
-    }
-}
-
-private struct TabButton: View {
-    let icon: String
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.system(size: 24))
-                Text(title)
-                    .font(.caption)
-            }
-            .foregroundColor(isSelected ? .theme.primary : .theme.secondaryText)
-        }
+        .background(Color.theme.background)
     }
 }
 
 #Preview {
-    BottomMenuView(selectedTab: .constant(0))
-        .previewLayout(.sizeThatFits)
+    struct PreviewWrapper: View {
+        @State private var selectedTab = 0
+        
+        var body: some View {
+            BottomMenuView(selectedTab: $selectedTab)
+        }
+    }
+    
+    return PreviewWrapper()
 } 

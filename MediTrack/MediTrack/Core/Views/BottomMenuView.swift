@@ -51,4 +51,5 @@ private struct TabButton: View {
 
 #Preview {
     BottomMenuView(selectedTab: .constant(0))
+        .previewLayout(.sizeThatFits)
 } 

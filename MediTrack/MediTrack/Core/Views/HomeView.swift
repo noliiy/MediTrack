@@ -69,7 +69,8 @@ struct HomeView: View {
     }
 }
 
-struct ProgressCard: View {
+// MARK: - Supporting Views
+private struct ProgressCard: View {
     let progress: Double
     @State private var showProgress = false
     
@@ -111,7 +112,7 @@ struct ProgressCard: View {
     }
 }
 
-struct MedicationStatusView: View {
+private struct MedicationStatusView: View {
     let condition: IntakeCondition
     
     var body: some View {

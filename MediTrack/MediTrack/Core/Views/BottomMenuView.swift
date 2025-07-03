@@ -10,7 +10,9 @@ struct BottomMenuView: View {
                 title: "Ana Sayfa",
                 isSelected: selectedTab == 0
             ) {
-                selectedTab = 0
+                withAnimation {
+                    selectedTab = 0
+                }
             }
             
             TabButton(
@@ -18,11 +20,13 @@ struct BottomMenuView: View {
                 title: "Tamamlandı",
                 isSelected: selectedTab == 1
             ) {
-                selectedTab = 1
+                withAnimation {
+                    selectedTab = 1
+                }
             }
         }
         .padding(.vertical)
-        .background(Color.theme.background)
+        .background(Color.theme.cardBackground)
     }
 }
 

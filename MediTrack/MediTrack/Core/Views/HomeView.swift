@@ -5,33 +5,57 @@ struct HomeView: View {
     @State private var selectedTab = 0
     
     var body: some View {
-        VStack {
-            // Günlük İlerleme Kartı
-            ProgressCard(progress: viewModel.getDailyProgress())
-                .padding(.horizontal)
-                .padding(.top, 20)
-            
-            Spacer()
-            
-            // İlaç Durumu
-            if let condition = viewModel.state.todaysMedications.first?.intakeCondition {
-                MedicationStatusView(condition: condition)
-                    .padding(.bottom, 100)
+        NavigationView {
+            ZStack {
+                Color.theme.background
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 0) {
+                    TabView(selection: $selectedTab) {
+                        // Ana Sayfa
+                        VStack {
+                            // Günlük İlerleme Kartı
+                            ProgressCard(progress: viewModel.getDailyProgress())
+                                .padding(.horizontal)
+                                .padding(.top, 20)
+                            
+                            // İlaç Durumu
+                            if let condition = viewModel.state.todaysMedications.first?.intakeCondition {
+                                MedicationStatusView(condition: condition)
+                                    .padding(.top, 20)
+                            }
+                            
+                            Spacer()
+                        }
+                        .tag(0)
+                        
+                        // Tamamlanan İlaçlar
+                        VStack {
+                            Text("Tamamlanan İlaçlar")
+                                .font(.title2.bold())
+                                .foregroundColor(.theme.text)
+                                .padding()
+                            
+                            Spacer()
+                        }
+                        .tag(1)
+                    }
+                    .tabViewStyle(.page(indexDisplayMode: .never))
+                    
+                    // Alt Menü
+                    BottomMenuView(selectedTab: $selectedTab)
+                }
             }
-            
-            // Alt Menü
-            BottomMenuView(selectedTab: $selectedTab)
+            .navigationBarItems(
+                trailing: Button(action: {
+                    viewModel.dispatch(.showAddMedication)
+                }) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(.theme.primary)
+                }
+            )
         }
-        .background(Color.theme.background.ignoresSafeArea())
-        .navigationBarItems(
-            trailing: Button(action: {
-                viewModel.dispatch(.showAddMedication)
-            }) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.theme.primary)
-            }
-        )
         .sheet(isPresented: .init(
             get: { viewModel.state.showingAddMedication },
             set: { isPresented in

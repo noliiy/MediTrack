@@ -115,14 +115,10 @@ struct MedicationCardView: View {
             name: "Aspirin",
             dosage: "100mg",
             intakeCondition: .afterMeal,
-            frequency: 2,
-            times: [
-                MedicationTime(hour: 9, minute: 0),
-                MedicationTime(hour: 21, minute: 0)
-            ],
+            frequency: 1,
+            times: [MedicationTime(hour: 9, minute: 0)],
             notes: "Yemekten 30 dakika sonra alınmalı"
         ),
         onTaken: {}
     )
-    .padding()
 } 

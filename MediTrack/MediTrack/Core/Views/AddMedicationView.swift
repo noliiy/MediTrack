@@ -2,204 +2,45 @@ import SwiftUI
 
 struct AddMedicationView: View {
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject var viewModel: MedicationViewModel
-    
     @State private var name = ""
-    @State private var dosage = ""
-    @State private var intakeCondition: IntakeCondition = .afterMeal
-    @State private var selectedHour = 9
-    @State private var selectedMinute = 0
-    @State private var notes = ""
-    @State private var showAlert = false
-    @State private var isLoading = false
-    @State private var isSaved = false
+    @State private var time = Date()
+    @State private var instruction = "with food"
+    
+    let onSave: (Medication) -> Void
+    let instructions = ["with food", "on an empty stomach", "before sleep"]
     
     var body: some View {
         NavigationView {
-            ZStack {
-                Color.theme.background
-                    .ignoresSafeArea()
-                
-                ScrollView {
-                    VStack(spacing: 24) {
-                        // İlaç Adı
-                        VStack(alignment: .leading, spacing: 8) {
-                            Label("İlaç Adı", systemImage: "pills")
-                                .font(.headline)
-                                .foregroundColor(.theme.text)
-                            
-                            TextField("Örn: Aspirin", text: $name)
-                                .textFieldStyle(CustomTextFieldStyle())
-                                .submitLabel(.next)
+            Form {
+                Section {
+                    TextField("Medication Name", text: $name)
+                    DatePicker("Time", selection: $time, displayedComponents: .hourAndMinute)
+                    Picker("Instructions", selection: $instruction) {
+                        ForEach(instructions, id: \.self) { instruction in
+                            Text(instruction)
                         }
-                        
-                        // Doz
-                        VStack(alignment: .leading, spacing: 8) {
-                            Label("Doz", systemImage: "scalemass")
-                                .font(.headline)
-                                .foregroundColor(.theme.text)
-                            
-                            TextField("Örn: 100mg", text: $dosage)
-                                .textFieldStyle(CustomTextFieldStyle())
-                                .submitLabel(.done)
-                        }
-                        
-                        // Alım Koşulu
-                        VStack(alignment: .leading, spacing: 8) {
-                            Label("Alım Koşulu", systemImage: "clock")
-                                .font(.headline)
-                                .foregroundColor(.theme.text)
-                            
-                            Picker("Alım Koşulu", selection: $intakeCondition) {
-                                ForEach([IntakeCondition.beforeMeal,
-                                        IntakeCondition.afterMeal,
-                                        IntakeCondition.withMeal,
-                                        IntakeCondition.noMatter]) { condition in
-                                    Text(condition.rawValue).tag(condition)
-                                }
-                            }
-                            .pickerStyle(SegmentedPickerStyle())
-                        }
-                        
-                        // Zaman Seçimi
-                        VStack(alignment: .leading, spacing: 8) {
-                            Label("Alım Zamanı", systemImage: "alarm")
-                                .font(.headline)
-                                .foregroundColor(.theme.text)
-                            
-                            HStack {
-                                Picker("Saat", selection: $selectedHour) {
-                                    ForEach(0..<24) { hour in
-                                        Text("\(hour)").tag(hour)
-                                    }
-                                }
-                                .pickerStyle(WheelPickerStyle())
-                                .frame(width: 100)
-                                
-                                Text(":")
-                                    .font(.title2.bold())
-                                    .foregroundColor(.theme.text)
-                                
-                                Picker("Dakika", selection: $selectedMinute) {
-                                    ForEach(0..<60) { minute in
-                                        Text(String(format: "%02d", minute)).tag(minute)
-                                    }
-                                }
-                                .pickerStyle(WheelPickerStyle())
-                                .frame(width: 100)
-                            }
-                            .padding()
-                            .background(Color.theme.cardBackground)
-                            .cornerRadius(16)
-                        }
-                        
-                        // Notlar
-                        VStack(alignment: .leading, spacing: 8) {
-                            Label("Notlar", systemImage: "text.quote")
-                                .font(.headline)
-                                .foregroundColor(.theme.text)
-                            
-                            TextEditor(text: $notes)
-                                .frame(height: 100)
-                                .padding(12)
-                                .background(Color.theme.cardBackground)
-                                .cornerRadius(16)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .stroke(Color.theme.secondaryBackground, lineWidth: 1)
-                                )
-                        }
-                        
-                        Spacer()
-                            .frame(height: 32)
-                        
-                        // Kaydet Butonu
-                        Button(action: {
-                            if !isLoading && !isSaved {
-                                saveMedication()
-                            }
-                        }) {
-                            HStack {
-                                if isLoading {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                        .padding(.trailing, 8)
-                                } else if isSaved {
-                                    Image(systemName: "checkmark")
-                                        .font(.headline)
-                                        .foregroundColor(.white)
-                                        .padding(.trailing, 8)
-                                }
-                                
-                                Text(isSaved ? "Kaydedildi" : "Kaydet")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(buttonBackgroundColor)
-                            )
-                        }
-                        .disabled(name.isEmpty || dosage.isEmpty || isLoading || isSaved)
                     }
-                    .padding(24)
                 }
             }
-            .navigationTitle("Yeni İlaç Ekle")
+            .navigationTitle("Add Medication")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("İptal") {
-                        dismiss()
-                    }
-                    .foregroundColor(.theme.secondary)
-                }
-            }
-            .onChange(of: isSaved) { newValue in
-                if newValue {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
                         dismiss()
                     }
                 }
-            }
-        }
-    }
-    
-    private var buttonBackgroundColor: Color {
-        if isSaved {
-            return Color.theme.success
-        } else if name.isEmpty || dosage.isEmpty {
-            return Color.theme.primary.opacity(0.5)
-        } else {
-            return Color.theme.primary
-        }
-    }
-    
-    private func saveMedication() {
-        guard !name.isEmpty && !dosage.isEmpty && !isLoading && !isSaved else { return }
-        
-        isLoading = true
-        
-        let medicationTime = MedicationTime(hour: selectedHour, minute: selectedMinute)
-        let newMedication = Medication(
-            name: name,
-            dosage: dosage,
-            intakeCondition: intakeCondition,
-            frequency: 1,
-            times: [medicationTime],
-            notes: notes.isEmpty ? nil : notes
-        )
-        
-        // İlaç ekleme işlemi
-        viewModel.dispatch(.addMedication(newMedication))
-        
-        // Kullanıcı geri bildirimi
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            isLoading = false
-            withAnimation {
-                isSaved = true
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        let medication = Medication(
+                            name: name,
+                            time: time,
+                            instruction: instruction
+                        )
+                        onSave(medication)
+                        dismiss()
+                    }
+                }
             }
         }
     }

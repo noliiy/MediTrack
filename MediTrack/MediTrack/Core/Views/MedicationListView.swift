@@ -11,7 +11,7 @@ struct MedicationListView: View {
                     viewModel.toggleMedicationStatus(medication)
                 }
             }
-            .navigationTitle("Today's Medications")
+            .navigationTitle("Günlük İlaçlarım")
             .toolbar {
                 Button(action: { showingAddMedication = true }) {
                     Image(systemName: "plus")

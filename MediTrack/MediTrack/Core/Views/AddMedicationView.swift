@@ -4,34 +4,34 @@ struct AddMedicationView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var name = ""
     @State private var time = Date()
-    @State private var instruction = "with food"
+    @State private var instruction = "yemekle birlikte"
     
     let onSave: (Medication) -> Void
-    let instructions = ["with food", "on an empty stomach", "before sleep"]
+    let instructions = ["yemekle birlikte", "aç karnına", "uykudan önce"]
     
     var body: some View {
         NavigationView {
             Form {
                 Section {
-                    TextField("Medication Name", text: $name)
-                    DatePicker("Time", selection: $time, displayedComponents: .hourAndMinute)
-                    Picker("Instructions", selection: $instruction) {
+                    TextField("İlaç Adı", text: $name)
+                    DatePicker("Saat", selection: $time, displayedComponents: .hourAndMinute)
+                    Picker("Kullanım Talimatı", selection: $instruction) {
                         ForEach(instructions, id: \.self) { instruction in
                             Text(instruction)
                         }
                     }
                 }
             }
-            .navigationTitle("Add Medication")
+            .navigationTitle("İlaç Ekle")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button("İptal") {
                         dismiss()
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button("Kaydet") {
                         let medication = Medication(
                             name: name,
                             time: time,
